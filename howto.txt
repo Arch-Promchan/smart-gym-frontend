@@ -1,0 +1,6 @@
+cd C:\Users\m\Desktop\project\BMO\project\Mira project\backend
+
+npm run dev
+
+cd C:\Users\m\Desktop\project\BMO\project\Mira project\frontend
+npx http-server -p 8080
