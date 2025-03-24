@@ -23,48 +23,46 @@
         setInterval(updateTime, 1000);
         window.onload = updateTime;
     
-        // Change the validateSignup function
         async function validateSignup() {
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-
+    
             if (username.trim() === '' || email.trim() === '' || password.trim() === '' || confirmPassword.trim() === '') {
                 alert('Please fill in all fields.');
                 return;
             }
-
+    
             if (password !== confirmPassword) {
                 alert('Passwords do not match.');
                 return;
             }
-
+    
             if (!/\S+@\S+\.\S+/.test(email)) {
                 alert('Please enter a valid email address.');
                 return;
             }
-
+    
             const data = { username, email, password };
-
+    
             try {
-                const response = await fetch('http://localhost:3000/auth/signup', {
+                const response = await fetch('https://smart-gym-api.azurewebsites.net/sensors/latest', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-
+    
                 const result = await response.json();
-
-                if (response.ok && result.success) {
-                    alert('Sign Up Successful! Your customer number is: ' + result.customerNumber);
+    
+                if (response.ok) {
+                    alert('Sign Up Successful');
                     window.location.href = 'login.html';
                 } else {
                     alert(result.message || 'Sign Up Failed');
                 }
             } catch (error) {
                 alert('An error occurred, please try again.');
-                console.error(error);
             }
         }
     </script>
