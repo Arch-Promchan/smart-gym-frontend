@@ -26,72 +26,41 @@
             fetchData();
         };
 
-        // Change the fetchData function
         async function fetchData() {
             try {
-                // Fetch sensor data
-                const sensorResponse = await fetch('http://localhost:3000/sensors/latest');
-                if (!sensorResponse.ok) throw new Error("Failed to fetch sensor data");
-                const sensorData = await sensorResponse.json();
+                const sessionToken = localStorage.getItem('sessionToken');
+                const headers = { 'Content-Type': 'application/json' };
                 
-                // Get username from localStorage (set during login)
-                const username = localStorage.getItem('username');
-                let userData = { name: "Guest", customerNumber: "000000" };
-                
-                if (username) {
-                    try {
-                        // Fetch user profile data
-                        const userResponse = await fetch(`http://localhost:3000/auth/profile/${username}`);
-                        if (userResponse.ok) {
-                            const userResult = await userResponse.json();
-                            if (userResult.success) {
-                                userData = { 
-                                    name: userResult.user.username, 
-                                    customerNumber: userResult.user.customerNumber 
-                                };
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error fetching user data:', error);
-                    }
+                if (sessionToken) {
+                    headers['Authorization'] = sessionToken;
                 }
                 
-                // Update UI with user data
-                document.getElementById('userName').innerText = userData.name;
-                document.getElementById('customerNumber').innerText = userData.customerNumber;
+                const response = await fetch('https://smart-gym-api.azurewebsites.net/sensors/latest', {
+                    headers: headers
+                });
                 
-                // Update UI with sensor data
-                document.getElementById('tempValue').innerText = sensorData.temperature || "--";
+                if (!response.ok) throw new Error("Failed to fetch data");
+
+                const data = await response.json();
+
+                document.getElementById('userName').innerText = data.user.name || "N/A";
+                document.getElementById('customerNumber').innerText = data.user.customerNumber || "000000";
+                document.getElementById('tempValue').innerText = data.temperature || "--";
                 document.getElementById('tempUnit').innerText = '°C';
-                document.getElementById('humidityValue').innerText = `${sensorData.humidity || "--"}%`;
-                
-                // For occupancy, we need to handle the peopleCount data
-                const currentOccupancy = sensorData.peopleCount || 0;
-                document.getElementById('currentOccupancy').innerText = currentOccupancy;
-                
-                // For entered and exited, we don't have direct data from the API
-                // You might need to track these values separately or modify the backend
-                // For now, we'll just show the current count
-                document.getElementById('enteredCount').innerText = currentOccupancy;
-                document.getElementById('exitedCount').innerText = "0";
-                
+                document.getElementById('humidityValue').innerText = `${data.humidity || "--"}%`;
+                document.getElementById('currentOccupancy').innerText = data.occupancy.current || "0";
+                document.getElementById('enteredCount').innerText = data.occupancy.entered || "0";
+                document.getElementById('exitedCount').innerText = data.occupancy.exited || "0";
+
                 const maxOccupancy = 50;
-                const occupancyRatio = (currentOccupancy / maxOccupancy) * 100;
+                const occupancyRatio = (data.occupancy.current / maxOccupancy) * 100;
                 document.getElementById('occupancyBar').style.width = `${occupancyRatio}%`;
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         }
 
-        // Add a logout function
-        function logout() {
-            localStorage.removeItem('username');
-            window.location.href = 'login.html';
-        }
-
-        // Update the logout button in the HTML
-        // Find: <button type="button" onclick="window.location.href='login.html';" class="mt-4 text-blue-400 flex items-center">
-        // Replace with: <button type="button" onclick="logout()" class="mt-4 text-blue-400 flex items-center">
+        setInterval(fetchData, 5000);
     </script>
 
     <style>
